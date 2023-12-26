@@ -1,9 +1,17 @@
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Scanner;
 
 public class TugasStringDate {
     public static void main(String[] args) {
+        // Metode main dihapus dari sini
+    }
+
+    public void runProgram() {
         // Kode utama program
         Scanner scanner = new Scanner(System.in);
 
@@ -58,6 +66,9 @@ public class TugasStringDate {
             // Menampilkan informasi kasir
             System.out.print("Kasir    : " + getKasirInfo());
 
+            // Menyimpan data ke database menggunakan JDBC
+            saveToDatabase(namaPelanggan, noHp, alamat, kodeBarang, namaBarang, hargaBarang, jumlahBeli, totalBayar);
+
         } catch (Exception e) {
             // Menangani exception umum
             System.out.println("Terjadi kesalahan: " + e.getMessage());
@@ -67,20 +78,51 @@ public class TugasStringDate {
         }
     }
 
-    // Metode getFormattedDate(), getFormattedTime(), dan getKasirInfo() tetap sama
-    private static String getFormattedDate() {
+    private String getFormattedDate() {
         Date currentDate = new Date();
         SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, dd/MM/yyyy");
         return dateFormat.format(currentDate);
     }
 
-    private static String getFormattedTime() {
+    private String getFormattedTime() {
         Date currentDate = new Date();
         SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss z");
         return timeFormat.format(currentDate);
     }
 
-    private static String getKasirInfo() {
+    private String getKasirInfo() {
         return "Nama Kasir";
+    }
+
+    private void saveToDatabase(String namaPelanggan, String noHp, String alamat,
+                                String kodeBarang, String namaBarang, double hargaBarang,
+                                int jumlahBeli, double totalBayar) {
+        String jdbcUrl = "jdbc:mysql://localhost:3306/kasirjava";
+        String username = "admin";
+        String password = ""; 
+
+        try (Connection connection = DriverManager.getConnection(jdbcUrl, username, password)) {
+            String insertQuery = "INSERT INTO pembelian (nama_pelanggan, no_hp, alamat, kode_barang, nama_barang, harga_barang, jumlah_beli, total_bayar) " +
+                                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+            try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
+                preparedStatement.setString(1, namaPelanggan);
+                preparedStatement.setString(2, noHp);
+                preparedStatement.setString(3, alamat);
+                preparedStatement.setString(4, kodeBarang);
+                preparedStatement.setString(5, namaBarang);
+                preparedStatement.setDouble(6, hargaBarang);
+                preparedStatement.setInt(7, jumlahBeli);
+                preparedStatement.setDouble(8, totalBayar);
+
+                // Eksekusi pernyataan SQL
+                preparedStatement.executeUpdate();
+
+                System.out.println("Data berhasil disimpan ke database.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Terjadi kesalahan SQL: " + e.getMessage());
+        }
     }
 }
